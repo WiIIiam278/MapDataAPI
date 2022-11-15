@@ -74,6 +74,18 @@ public class MapData {
         }
     }
 
+    @NotNull
+    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale) {
+        final List<Integer> colors = new ArrayList<>(128 * 128);
+        for (int[] row : pixels) {
+            for (int pixel : row) {
+                colors.add(pixel);
+            }
+        }
+        return new MapData(colors, dimension, scale);
+    }
+
+    @NotNull
     public NamedTag toNBT() {
         final CompoundTag mapData = new CompoundTag();
         // Set colors
@@ -178,8 +190,7 @@ public class MapData {
         return colors;
     }
 
-    @NotNull
-    public Integer getColorAt(int x, int y) throws IllegalArgumentException {
+    public int getColorAt(int x, int y) throws IllegalArgumentException {
         if (x < 0 || x > 127 || y < 0 || y > 127) {
             throw new IllegalArgumentException("x and y must be between 0 and 127");
         }
