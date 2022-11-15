@@ -16,7 +16,7 @@ public class MapDataTests {
     public void testMapDataReading() throws IOException {
         final File mapFile = new File(Objects.requireNonNull(getClass().getClassLoader()
                 .getResource("map_example.dat")).getFile());
-        Assertions.assertNotNull(MapData.fromNbt(mapFile).toString());
+        Assertions.assertNotNull(MapData.fromNbt(mapFile).toBytes());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class MapDataTests {
                 .getResource("image_example.png")));
 
         final MapData mapData = MapData.fromImage(image);
-        Assertions.assertNotNull(mapData.toString());
+        Assertions.assertNotNull(mapData.toBytes());
 
         final File outDir = new File("src/test/resources/out");
         if (!outDir.exists()) {
@@ -52,6 +52,20 @@ public class MapDataTests {
 
         final File imageFile = new File(outDir, "image_example.png");
         ImageIO.write((RenderedImage) mapData.toImage(), "png", imageFile);
+    }
+
+    @Test
+    public void testCompression() throws IOException {
+        final File mapFile = new File(Objects.requireNonNull(getClass().getClassLoader()
+                .getResource("map_example.dat")).getFile());
+        final MapData mapData = MapData.fromNbt(mapFile);
+        Assertions.assertNotNull(mapData);
+
+        final byte[] mapDataString = mapData.toBytes();
+        Assertions.assertNotNull(mapDataString);
+
+        final MapData mapDataFromString = MapData.fromByteArray(mapDataString);
+        Assertions.assertNotNull(mapDataFromString);
     }
 
 }

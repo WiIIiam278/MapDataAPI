@@ -11,10 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +63,10 @@ public class MapData {
     }
 
     @NotNull
-    public static MapData fromString(@NotNull String mapData) throws IOException {
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(mapData.getBytes(StandardCharsets.UTF_8))) {
-            final NamedTag mapRootTag = new NBTDeserializer(true).fromStream(inputStream);
-            final CompoundTag mapDataTag = ((CompoundTag) mapRootTag.getTag()).getCompoundTag("data");
+    public static MapData fromByteArray(byte[] bytes) throws IOException {
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+            final NamedTag mapRootTag = new NBTDeserializer(true).fromStream(stream);
+            final CompoundTag mapDataTag = ((CompoundTag) mapRootTag.getTag());
             return new MapData(mapDataTag);
         }
     }
@@ -88,12 +85,17 @@ public class MapData {
     @NotNull
     public NamedTag toNBT() {
         final CompoundTag mapData = new CompoundTag();
+
         // Set colors
-        mapData.put("colors", new IntArrayTag(colors.stream().mapToInt(Integer::intValue).toArray()));
+        byte[] colors = new byte[128 * 128];
+        for (int i = 0; i < this.colors.size(); i++) {
+            colors[i] = this.colors.get(i).byteValue();
+        }
+        mapData.put("colors", new ByteArrayTag(colors));
 
         // Set metadata
         mapData.put("dimension", new StringTag(dimension));
-        mapData.put("scale", new IntTag(scale));
+        mapData.put("scale", new ByteTag(scale));
         mapData.put("xCenter", new IntTag(xCenter));
         mapData.put("zCenter", new IntTag(zCenter));
         mapData.put("locked", new ByteTag((byte) 1));
@@ -120,16 +122,20 @@ public class MapData {
         NBTUtil.write(toNBT(), file);
     }
 
-    @NotNull
-    @Override
-    public String toString() {
+    public byte[] toBytes() {
         final NamedTag mapRoot = toNBT();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             new NBTSerializer(true).toStream(mapRoot, outputStream);
-            return outputStream.toString(StandardCharsets.UTF_8);
+            return outputStream.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+        return new String(toBytes(), StandardCharsets.ISO_8859_1);
     }
 
     @NotNull
@@ -146,6 +152,7 @@ public class MapData {
 
     /**
      * Write the map to a bitmap image file (.PNG)
+     *
      * @param file The file to write to
      * @throws IOException If an I/O error occurs
      */
