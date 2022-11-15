@@ -53,6 +53,7 @@ cmake-build-*/
 out/
 target/
 .idea/
+build/
 
 # gradle
 .gradle/
