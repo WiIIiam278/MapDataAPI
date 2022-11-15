@@ -70,7 +70,7 @@ public enum MapColor {
      *
      * @param id The palette index
      * @return The color
-     * @implNote invalid colors will be returned as transparent
+     * @apiNote invalid colors will be returned as transparent
      */
     @NotNull
     public static Color getColor(int id) {

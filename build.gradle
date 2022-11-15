@@ -7,6 +7,11 @@ plugins {
 group 'net.william278'
 version '1.0'
 
+compileJava.options.encoding = 'UTF-8'
+compileJava.options.release.set 16
+javadoc.options.encoding = 'UTF-8'
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io/' }
