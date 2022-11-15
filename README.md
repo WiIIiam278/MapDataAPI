@@ -16,7 +16,7 @@ To build MapDataAPI with Java 16+, run the following in the root directory:
 ```
 
 ## License
-ProfanityCheckerAPI is licensed under [Apache 2.0 License](https://github.com/WiIIiam278/MapDataAPI/blob/master/LICENSE).
+MapDataAPI is licensed under [Apache 2.0 License](https://github.com/WiIIiam278/MapDataAPI/blob/master/LICENSE).
 
 ---
 &copy; [William278](https://william278.net/), 2022. Licensed under the Apache 2.0 License.
