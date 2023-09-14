@@ -1,7 +1,7 @@
 # MapDataAPI
-[![GitHub CI](https://img.shields.io/github/workflow/status/WiIIiam278/MapDataAPI/Java%20CI?logo=github)](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/java_ci.yml)
-[![JitPack API](https://img.shields.io/jitpack/version/net.william278/MapDataAPI?color=%2300fb9a&label=api&logo=gradle)](https://jitpack.io/#net.william278/MapDataAPI)
-[![Discord](https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/tVYhJfyDWG)
+[![Build Status](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml)
+[![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
+[![Maven](https://repo.william278.net/api/badge/latest/releases/net/william278/mapdataapi?color=00fb9a&name=Maven&prefix=v)](https://repo.william278.net/#/releases/net/william278/mapdataapi/)
 
 **MapDataAPI** is a platform-agnostic Java API for interfacing with _Minecraft: Java Edition_ map data files. It supports the following operations:
 * Reading map data from [an NBT file](https://minecraft.fandom.com/wiki/Map_item_format)
