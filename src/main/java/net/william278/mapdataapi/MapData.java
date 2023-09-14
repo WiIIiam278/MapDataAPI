@@ -44,6 +44,17 @@ public class MapData {
         mapData.getListTag("frames").asCompoundTagList().forEach(tag -> this.markers.add(new MapMarker(tag)));
     }
 
+    public MapData(@NotNull List<Integer> colors, @NotNull String dimension, byte scale, int xCenter, int zCenter,
+                   @NotNull List<MapBanner> banners, @NotNull List<MapMarker> markers) {
+        this.colors = colors;
+        this.dimension = dimension;
+        this.scale = scale;
+        this.xCenter = xCenter;
+        this.zCenter = zCenter;
+        this.banners.addAll(banners);
+        this.markers.addAll(markers);
+    }
+
     public MapData(@NotNull List<Integer> colors, @NotNull String dimension, byte scale) {
         this.colors = colors;
         this.dimension = dimension;
@@ -72,15 +83,22 @@ public class MapData {
     }
 
     @NotNull
-    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale) {
+    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale,
+                                     @NotNull List<MapBanner> banners, @NotNull List<MapMarker> markers) {
         final List<Integer> colors = new ArrayList<>(128 * 128);
         for (int[] row : pixels) {
             for (int pixel : row) {
                 colors.add(pixel);
             }
         }
-        return new MapData(colors, dimension, scale);
+        return new MapData(colors, dimension, scale, 0, 0, banners, markers);
     }
+
+    @NotNull
+    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale) {
+        return fromPixels(pixels, dimension, scale, List.of(), List.of());
+    }
+
 
     @NotNull
     public NamedTag toNBT() {
