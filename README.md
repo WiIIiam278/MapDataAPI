@@ -1,5 +1,5 @@
 # MapDataAPI
-[![Build Status](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml)
+[![Gihub CI](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/WiIIiam278/MapDataAPI/actions/workflows/ci.yml)
 [![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
 [![Maven](https://repo.william278.net/api/badge/latest/releases/net/william278/mapdataapi?color=00fb9a&name=Maven&prefix=v)](https://repo.william278.net/#/releases/net/william278/mapdataapi/)
 
@@ -19,4 +19,4 @@ To build MapDataAPI with Java 16+, run the following in the root directory:
 MapDataAPI is licensed under [Apache 2.0 License](https://github.com/WiIIiam278/MapDataAPI/blob/master/LICENSE).
 
 ---
-&copy; [William278](https://william278.net/), 2022. Licensed under the Apache 2.0 License.
+&copy; [William278](https://william278.net/), 2023. Licensed under the Apache 2.0 License.
