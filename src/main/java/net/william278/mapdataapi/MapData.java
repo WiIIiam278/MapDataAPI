@@ -30,7 +30,10 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +41,13 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class MapData {
 
+    private static final String ROOT_TAG_NAME = "";
+
+    // Palette & data version
+    private final MapPalette palette;
+    private final int dataVersion;
+
+    // Map data
     @NotNull
     private List<Integer> colors = new ArrayList<>(128 * 128);
     @NotNull
@@ -50,7 +60,10 @@ public class MapData {
     private int xCenter;
     private int zCenter;
 
-    private MapData(@NotNull CompoundTag mapData) {
+    private MapData(@NotNull CompoundTag mapData, int dataVersion) {
+        this.dataVersion = dataVersion;
+        this.palette = MapPaletteRegistry.getPalette(dataVersion);
+
         byte[] colors = mapData.getByteArrayTag("colors").getValue();
         for (byte color : colors) {
             this.colors.add((int) color);
@@ -59,12 +72,16 @@ public class MapData {
         this.scale = mapData.getByte("scale");
         this.xCenter = mapData.getInt("xCenter");
         this.zCenter = mapData.getInt("zCenter");
+
         mapData.getListTag("banners").asCompoundTagList().forEach(tag -> this.banners.add(new MapBanner(tag)));
         mapData.getListTag("frames").asCompoundTagList().forEach(tag -> this.markers.add(new MapMarker(tag)));
     }
 
-    public MapData(@NotNull List<Integer> colors, @NotNull String dimension, byte scale, int xCenter, int zCenter,
-                   @NotNull List<MapBanner> banners, @NotNull List<MapMarker> markers) {
+    public MapData(int dataVersion, @NotNull List<Integer> colors, @NotNull String dimension, byte scale,
+                   int xCenter, int zCenter, @NotNull List<MapBanner> banners, @NotNull List<MapMarker> markers) {
+        this.dataVersion = dataVersion;
+        this.palette = MapPaletteRegistry.getPalette(dataVersion);
+
         this.colors = colors;
         this.dimension = dimension;
         this.scale = scale;
@@ -74,7 +91,10 @@ public class MapData {
         this.markers.addAll(markers);
     }
 
-    public MapData(@NotNull List<Integer> colors, @NotNull String dimension, byte scale) {
+    public MapData(int dataVersion, @NotNull List<Integer> colors, @NotNull String dimension, byte scale) {
+        this.dataVersion = dataVersion;
+        this.palette = MapPaletteRegistry.getPalette(dataVersion);
+
         this.colors = colors;
         this.dimension = dimension;
         this.scale = scale;
@@ -82,9 +102,10 @@ public class MapData {
 
     @NotNull
     public static MapData fromNbt(@NotNull File file) throws IOException {
-        final NamedTag mapRootTag = NBTUtil.read(file);
-        final CompoundTag mapData = ((CompoundTag) mapRootTag.getTag()).getCompoundTag("data");
-        return new MapData(mapData);
+        final CompoundTag mapRootTag = ((CompoundTag) NBTUtil.read(file).getTag());
+        final CompoundTag mapData = mapRootTag.getCompoundTag("data");
+        final int dataVersion = mapRootTag.getInt("DataVersion");
+        return new MapData(mapData, dataVersion);
     }
 
     @NotNull
@@ -93,16 +114,16 @@ public class MapData {
     }
 
     @NotNull
-    public static MapData fromByteArray(byte[] bytes) throws IOException {
+    public static MapData fromByteArray(int dataVersion, byte[] bytes) throws IOException {
         try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
             final NamedTag mapRootTag = new NBTDeserializer(true).fromStream(stream);
             final CompoundTag mapDataTag = ((CompoundTag) mapRootTag.getTag());
-            return new MapData(mapDataTag);
+            return new MapData(mapDataTag, dataVersion);
         }
     }
 
     @NotNull
-    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale,
+    public static MapData fromPixels(int dataVersion, int[][] pixels, @NotNull String dimension, byte scale,
                                      @NotNull List<MapBanner> banners, @NotNull List<MapMarker> markers) {
         final List<Integer> colors = new ArrayList<>(128 * 128);
         for (int[] row : pixels) {
@@ -110,14 +131,13 @@ public class MapData {
                 colors.add(pixel);
             }
         }
-        return new MapData(colors, dimension, scale, 0, 0, banners, markers);
+        return new MapData(dataVersion, colors, dimension, scale, 0, 0, banners, markers);
     }
 
     @NotNull
-    public static MapData fromPixels(int[][] pixels, @NotNull String dimension, byte scale) {
-        return fromPixels(pixels, dimension, scale, List.of(), List.of());
+    public static MapData fromPixels(int dataVersion, int[][] pixels, @NotNull String dimension, byte scale) {
+        return fromPixels(dataVersion, pixels, dimension, scale, List.of(), List.of());
     }
-
 
     @NotNull
     public NamedTag toNBT() {
@@ -148,11 +168,14 @@ public class MapData {
         mapData.put("frames", markerList);
 
         // Create root tag
-        return new NamedTag("data", mapData);
+        final CompoundTag root = new CompoundTag();
+        root.put("data", mapData);
+        root.put("DataVersion", new IntTag(dataVersion));
+        return new NamedTag(ROOT_TAG_NAME, mapData);
     }
 
     public void toFile(@NotNull File worldFolder, int mapId) throws IOException {
-        toFile(new File(worldFolder, "data/map_" + mapId + ".dat"));
+        toFile(new File(worldFolder, "data/map_%s.dat".formatted(mapId)));
     }
 
     public void toFile(@NotNull File file) throws IOException {
@@ -198,7 +221,9 @@ public class MapData {
     }
 
     @NotNull
-    public static MapData fromImage(@NotNull Image image) {
+    public static MapData fromImage(int dataVersion, @NotNull Image image) {
+        final MapPalette palette = MapPaletteRegistry.getPalette(dataVersion);
+
         // If the image is not 128x128, resize it
         image = image.getScaledInstance(128, 128, Image.SCALE_SMOOTH);
 
@@ -219,14 +244,14 @@ public class MapData {
             for (int y = 0; y < 128; y++) {
                 // Get the color of the pixel and find the closest color, setting the index of it
                 final Color color = new Color(bufferedImage.getRGB(x, y));
-                colors.add(MapColor.getClosestColorIndex(color));
+                colors.add(palette.getClosestColorIndex(color));
             }
         }
-        return new MapData(colors, "minecraft:overworld", (byte) 3);
+        return new MapData(dataVersion, colors, "minecraft:overworld", (byte) 3);
     }
 
     public void fromImageFile(@NotNull File file) throws IOException {
-        fromImage(ImageIO.read(file));
+        fromImage(dataVersion, ImageIO.read(file));
     }
 
     @NotNull
@@ -244,9 +269,8 @@ public class MapData {
 
     @NotNull
     public Color getMapColorAt(int x, int y) throws IllegalArgumentException {
-        return MapColor.getColor(getColorAt(x, y));
+        return palette.getColor(getColorAt(x, y));
     }
-
 
     @NotNull
     public List<MapBanner> getBanners() {
@@ -279,14 +303,14 @@ public class MapData {
         if (x < 0 || x > 127 || y < 0 || y > 127) {
             throw new IllegalArgumentException("x and y must be between 0 and 127");
         }
-        colors.set(x + y * 128, MapColor.getClosestColorIndex(color));
+        colors.set(x + y * 128, palette.getClosestColorIndex(color));
     }
 
     public void setColorAt(@NotNull MapColor mapColor, int x, int y) throws IllegalArgumentException {
         if (x < 0 || x > 127 || y < 0 || y > 127) {
             throw new IllegalArgumentException("x and y must be between 0 and 127");
         }
-        colors.set(x + y * 128, (mapColor.ordinal() * 4));
+        colors.set(x + y * 128, palette.getIndexOf(mapColor));
     }
 
     public void addBanner(@NotNull MapBanner banner) {
@@ -317,4 +341,5 @@ public class MapData {
     public void setZCenter(int zCenter) {
         this.zCenter = zCenter;
     }
+
 }

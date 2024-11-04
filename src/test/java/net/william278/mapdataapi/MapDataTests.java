@@ -31,6 +31,8 @@ import java.util.Objects;
 
 public class MapDataTests {
 
+    private static final int TEST_DATA_VERSION = 4082;
+
     @Test
     public void testMapDataReading() throws IOException {
         final File mapFile = new File(Objects.requireNonNull(getClass().getClassLoader()
@@ -61,7 +63,7 @@ public class MapDataTests {
         final Image image = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader()
                 .getResource("image_example.png")));
 
-        final MapData mapData = MapData.fromImage(image);
+        final MapData mapData = MapData.fromImage(TEST_DATA_VERSION, image);
         Assertions.assertNotNull(mapData.toBytes());
 
         final File outDir = new File("src/test/resources/out");
@@ -83,7 +85,7 @@ public class MapDataTests {
         final byte[] mapDataString = mapData.toBytes();
         Assertions.assertNotNull(mapDataString);
 
-        final MapData mapDataFromString = MapData.fromByteArray(mapDataString);
+        final MapData mapDataFromString = MapData.fromByteArray(TEST_DATA_VERSION, mapDataString);
         Assertions.assertNotNull(mapDataFromString);
     }
 

@@ -79,4 +79,5 @@ public class MapMarker {
     public void setPosition(@NotNull PositionTag position) {
         this.position = position;
     }
+
 }

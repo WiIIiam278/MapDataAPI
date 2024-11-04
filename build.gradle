@@ -1,13 +1,13 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.4'
     id 'org.cadixdev.licenser' version '0.6.1'
-    id 'org.ajoberstar.grgit' version '5.2.0'
+    id 'org.ajoberstar.grgit' version '5.3.0'
     id 'maven-publish'
     id 'java'
 }
 
 group 'net.william278'
-version "1.0.3${versionMetadata()}"
+version "$ext.library_version${versionMetadata()}"
 defaultTasks 'licenseFormat', 'build'
 
 repositories {
@@ -16,18 +16,23 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.jetbrains:annotations:24.0.1'
+    compileOnly 'org.jetbrains:annotations:26.0.1'
 
     implementation 'com.github.Querz:NBT:6.1'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.3'
 }
 
 tasks {
     compileJava {
         options.encoding = 'UTF-8'
-        options.release.set(11)
+        options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
+        options.release.set Integer.parseInt(rootProject.ext.javaVersion)
+    }
+    javadoc {
+        options.encoding = 'UTF-8'
+        options.addStringOption('Xdoclint:none', '-quiet')
     }
     jar {
         enabled = false
@@ -109,15 +114,20 @@ publishing {
 
 @SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {
-    // Get if there is a tag for this commit
+    // Require grgit
+    if (grgit == null) {
+        return '-unknown'
+    }
+
+    // If unclean, return the last commit hash with -indev
+    if (!grgit.status().clean) {
+        return '-' + grgit.head().abbreviatedId  + '-indev'
+    }
+
+    // Otherwise if this matches a tag, return nothing
     def tag = grgit.tag.list().find { it.commit.id == grgit.head().id }
     if (tag != null) {
         return ''
     }
-
-    // Otherwise, get the last commit hash and if it's a clean head
-    if (grgit == null) {
-        return '-' + System.getenv("GITHUB_RUN_NUMBER") ? 'build.' + System.getenv("GITHUB_RUN_NUMBER") : 'unknown'
-    }
-    return '-' + grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
+    return '-' + grgit.head().abbreviatedId
 }

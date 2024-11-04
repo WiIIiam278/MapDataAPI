@@ -19,7 +19,7 @@
 
 package net.william278.mapdataapi;
 
-import net.querz.nbt.tag.*;
+import net.querz.nbt.tag.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
